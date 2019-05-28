@@ -140,6 +140,9 @@ unsigned char** zoomOut_translation(unsigned char** originaImg, int zoomOutScope
         }
     }
 
+    delete[] reSizeImg[0];
+    delete[] reSizeImg;
+
 	return result;
 }
 

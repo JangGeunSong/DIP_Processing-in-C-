@@ -112,5 +112,7 @@ int main() {
 	delete[] ppLena;
 	delete[] ppOutputImg[0];
 	delete[] ppOutputImg;
+    delete[] Filter[0];
+    delete[] Filter;
 	return 0;
 }

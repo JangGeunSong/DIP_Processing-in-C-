@@ -25,12 +25,21 @@ unsigned char** zoomOut(unsigned char** originaImg, int zoomOutScope, int dx, in
     // value == ??? 이 값은 unsigned char의 자료형이 0 ~ 256 까지만 표현 가능하므로 음수나 256 이상의 결과가 나올떄 이를 처리할 방법이 없어 정수형으로 받은 후 연산을 처리하기 위해 선언하는 변수이다. 
 	unsigned char** result = _2dAlloc(512, 512);
     unsigned char** reSizeImg = _2dAlloc(imgSize, imgSize);
+    unsigned char** rotationImg = _2dAlloc(512, 512);
     
 	step = 512 / imgSize;
 
+    // 결과값을 리턴할 공간 초기화
     for(i = 0; i < 512; i++){
         for(j = 0; j < 512; j++){
             result[i][j] = 0;
+        }
+    }
+
+    // 회전 변환 이미지를 저장할 공간 초기화
+    for(i = 0; i < 512; i++){
+        for(j = 0; j < 512; j++){
+            rotationImg[i][j] = 0;
         }
     }
 
@@ -141,11 +150,46 @@ unsigned char** zoomOut(unsigned char** originaImg, int zoomOutScope, int dx, in
             result[i][j] = result[i][j] + reSizeImg[i - x][j - y];
         }
     }
+    
+    // scaling 한 이미지는 필요 없으므로 메모리 해제
+    delete[] reSizeImg[0];
+	delete[] reSizeImg;
+
+    // 이미지를 회전
     for(i = x; i < x + imgSize; i++) {
         for(j = y; j < y + imgSize; j++) {
             x_prime = (int)((i * cos(radian)) - (j * sin(radian)));
             y_prime = (int)((i * sin(radian)) + (j * cos(radian)));
-            result[i][j] = result[x_prime][y_prime];
+            rotationImg[x_prime][y_prime] = result[i][j];
+            result[i][j] = 0;
+            result[x_prime][y_prime] = rotationImg[x_prime][y_prime];
+        }
+    }
+
+    // 회전에 쓰인 이미지는 필요 없으므로 메모리 해제
+    delete[] rotationImg[0];
+    delete[] rotationImg;
+
+    // Hole 채우기
+    for(i = 0; i < 512; i++) {
+        for(j = 0; j < 512; j++) {
+            value = 0;
+            if(result[i][j] == 0) {
+                if(i - 1 > 0 && result[i - 1][j] > 0) {
+                    value = value + result[i - 1][j];
+                }
+                if(i + 1 < 512 && result[i + 1][j] > 0) {
+                    value = value + result[i + 1][j];
+                }
+                if(j - 1 > 0 && result[i][j - 1] > 0) {
+                    value = value + result[i][j - 1];
+                }
+                if(j + 1 < 512 && result[i][j + 1] > 0) {
+                    value = value + result[i][j + 1];
+                }
+                value = value / 4;
+                result[i][j] = value;
+            }
         }
     }
 
@@ -158,8 +202,10 @@ int main() {
 	unsigned char** ppLena = _2dAlloc(fileSize, fileSize);
 	fread(ppLena[0], 1, fileSize * fileSize, hLena);
 	fclose(hLena);
-
+    // 0.2 rad case
 	unsigned char** ppOutputImg = zoomOut(ppLena, zoomNum, 200, 20, 0.2);
+    // 0.5 rad case
+	// unsigned char** ppOutputImg = zoomOut(ppLena, zoomNum, 200, 20, 0.5);   
 	printf("Zoomout, translation and rotation are complete!\n");
 
 	FILE* hOutput = fopen("output.img", "wb");
