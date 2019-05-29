@@ -14,209 +14,85 @@ unsigned char** _2dAlloc(int width, int height)
 }
 
 unsigned char** zoomIn(unsigned char** originaImg, int zoomInScope) {
-    // To calculate the zoonIn Image pixel value, It need to interpolation calculation (Linear).
-    /*  --------------------------> col
-        1        A         B
-        1            P
-        v        C         D
-        row
-        p = [(col_2 - col) * (row - row_1) / (col_2 - col_1) * (row_2 - row_1)] * B
-            + [(col - col_1) * (row - row_1) / (col_2 - col_1) * (row_2 - row_1)] * A
-            + [(col_2 - col) * (row_2 - row) / (col_2 - col_1) * (row_2 - row_1)] * D
-            + [(col - col_1) * (row_2 - row) / (col_2 - col_1) * (row_2 - row_1)] * C
-
-        의 식을 계산하는 코드를 만든다.
-    */
-	int imgSize = 512 * zoomInScope;
-    int step = 0;
-    int row = 0, rowUp = 0, rowBottom = 0;
-    int col = 0, colLetf = 0, colRight = 0;
-    int A = 0, B = 0, C = 0 , D = 0;
-    int upperRowFlag = 0, lowerRowFlag = 0, leftColFlag = 0, rightColFlag = 0;
-	int value = 0;
+    // It needs to use the nearest neiborhood interpolation
+    int imgSize = 512 * zoomInScope;
+    int step = zoomInScope;
+    int upRow = -1, downRow = -1, leftCol = -1, rightCol = -1;
+    int row = 0, col = 0;
+    double reValue = 0;
     unsigned char** result = _2dAlloc(imgSize, imgSize);
-
-    int count = 0;
-
-    int** values = new int* [imgSize];
-    values[0] = new int [imgSize * imgSize];
-
-    for(row = 1; row < imgSize; row++) {
-        values[row] = values[row - 1] + imgSize;
-    }
     
-    for(row = 0; row < imgSize; row++) {
-        for(col = 0; col < imgSize; col++) {
-            values[row][col] = -1;
+    // 만들게 될 값은 double이 될 수 있으므로 우선적으로 double 의 타입을 갖는 value 를 만든다
+    double** value = new double* [imgSize];
+    value[0] = new double[imgSize * imgSize];
+    for(row = 1; row < imgSize; row++) {
+        value[row] = value[row - 1] + imgSize;
+    }
+    // 원본 이미지 픽셀의 값을 확대할 이미지에 집어 넣는다.
+    for(row = 0; row < imgSize; row = row + step) {
+        for(col = 0; col < imgSize; col = col + step) {
+            value[row][col] = originaImg[row / step][col / step];
         }
     }
-    
-    step = zoomInScope;
-    
-    // 원본 이미지의 Pixel value 를 삽입
+    // 집어넣은 원본 이미지의 픽셀값을 이용하여 interpolation 을 시행한다.
     for(row = 0; row < imgSize; row++) {
-        for(col = 0; col < imgSize; col++) {
-            if(row % step == 0 && col % step == 0) {
-                result[row][col] = originaImg[row / step][col / step];
+        if(row % step == 0) {
+            // 보간에 사용할 점의 위치 지정
+            if(row == 0) {
+                upRow = row;
+                downRow = row + step;
+            }
+            else if(row == imgSize - step) {
+                upRow = row - step;
+                downRow = row;
             }
             else {
-                values[row][col] = -1;
+                upRow = row - step;
+                downRow = row + step;
             }
         }
-    }
-
-    // 빈 공간에 pixel 값을 계산해서 삽입
-    for(row = 0; row < imgSize; row++) {
-        rowUp = row - 1;
-        rowBottom = row + 1;
         for(col = 0; col < imgSize; col++) {
-            colLetf = col - 1;
-            colRight = col + 1;
-            if(values[row][col] == -1) {
-                if(rowUp >= 0 && values[rowUp][col] != -1) {
-                    value = value + values[rowUp][col];
-                    count++;
-                }
-                if(rowBottom < imgSize && values[rowBottom][col] != -1) {
-                    value = value + values[rowBottom][col];
-                    count++;
-                }
-                if(colLetf >= 0 && values[row][colLetf] != -1) {
-                    value = value + values[row][colLetf];
-                    count++;
-                }
-                if(colLetf < imgSize && values[row][colRight] != -1) {
-                    value = value + values[row][colRight];
-                    count++;
-                }
-
-                value = value / count;
-
-                // 값을 unsigned char 의 범위에 맞게 재 조정.
-                if(value < 0) {
-                    value = 0;
-                    result[row][col] = value;
-                }
-                else if(value > 256) {
-                    value = 255;
-                    result[row][col] = value;
-                }
-                else {
-                    result[row][col] = value;
-                }
-                count = 0;
+            // 보간에 사용할 점의 위치 지정
+            if(col == 0) {
+                leftCol = col;
+                rightCol = col + step;
+            }
+            else if(col == imgSize - step) {
+                leftCol = col - step;
+                rightCol = col;
+            }
+            else {
+                leftCol = col - step;
+                rightCol = col + step;
+            }
+            // 보간 계산
+            if(row % step == 0) {
+                reValue = (value[row][leftCol] / (rightCol - col)) + (value[row][rightCol] / (col - leftCol));
+            }
+            else if(col % step == 0) {
+                reValue = (value[upRow][col] / (downRow - row)) + (value[downRow][col] / (row - upRow));
+            }
+            else {
+                reValue = (((value[upRow][leftCol] / (rightCol - col)) + (value[upRow][rightCol] / (col - leftCol))) / (downRow - row)) + (((value[downRow][leftCol] / (rightCol - col)) + (value[downRow][rightCol] / (col - leftCol))) / (row - upRow));
+            }
+            // unsigned char 에 맞춰서 값을 조정할 필요가 있다면 조정
+            if(reValue < 0) {
+                reValue = 0;
+                result[row][col] = reValue;
+            }
+            else if(reValue > 256) {
+                reValue = 255;
+                result[row][col] = reValue;
+            }
+            else{
+                result[row][col] = reValue;
             }
         }
     }
 
-    delete[] values[0];
-    delete[] values; 
-
-
-    // for(row = 0; row < imgSize; row++) {
-    //     A = 1;
-    //     B = 1;
-    //     C = 1;
-    //     D = 1;
-    //     // 이미지를 확대 시킬때 비어있는 픽셀을 채우기 위한 보간용 원레 이미지 픽셀 위치를 정하는 연산
-    //     // 행을 정할때는 (채우게 될 픽셀의 위치 - 확대 하면서 원레 이미지의 픽셀이 벌어진 거리) 만큼을 계산하여 지정한다.
-    //     /*
-    //        (픽셀위치 - 벌어진거리) / 벌어진거리    지정픽셀위치    (픽셀위치 + 벌어진거리) / 벌어진거리
-    //     */
-    //     row_1 = (row - step) / step;
-    //     row_2 = (row + step) / step;
-    //     // 지정 픽셀 보다 위쪽 행에 있는 픽셀이 정의되지 않았을때
-    //     if(row_1 < 0) {
-    //         A = -1;
-    //         B = -1;
-    //         upperRowFlag = 1;
-    //     }
-    //     else {
-    //         upperRowFlag = 0;
-    //     }
-    //     // 지정 픽셀보다 아래쪽 행에 있는 픽셀이 정의되지 않았을때
-    //     if(row_2 >= 512) {
-    //         C = -1;
-    //         D = -1;
-    //         lowerRowFlag = 1;
-    //     }
-    //     else {
-    //         lowerRowFlag = 0;
-    //     }
-    //     for(col = 0; col< imgSize; col++) {
-    //         value = 0;
-    //         col_1 = (col - step) / step;
-    //         col_2 = (col + step) / step;
-
-    //         if(col_1 < 0){
-    //             A = -1;
-    //             C = -1;
-    //             leftColFlag = 1;
-    //         }
-    //         else {
-    //             leftColFlag = 0;
-    //         }
-    //         if(col_2 >= 512) {
-    //             B = -1;
-    //             D = -1;
-    //             rightColFlag = 1;
-    //         }
-    //         else {
-    //             rightColFlag = 0;
-    //         }
-
-    //         if(A != -1) {
-    //             A = originaImg[row_1][col_1];
-    //             value = value + ((col - col_1) * (row - row_1) / (col_2 - col_1) * (row_2 - row_1)) * A;
-    //         }
-    //         if(B != -1) {
-    //             B = originaImg[row_1][col_2];
-    //             value = value + ((col_2 - col) * (row - row_1) / (col_2 - col_1) * (row_2 - row_1)) * B;
-    //         }
-    //         if(C != -1) {
-    //             C = originaImg[row_2][col_1];
-    //             value = value + ((col - col_1) * (row_2 - row) / (col_2 - col_1) * (row_2 - row_1)) * C;
-    //         }
-    //         if(D != -1) {
-    //             D = originaImg[row_2][col_2];
-    //             value = value + ((col_2 - col) * (row_2 - row) / (col_2 - col_1) * (row_2 - row_1)) * D;
-    //         }
-            
-    //         A = 1;
-    //         B = 1;
-    //         C = 1;
-    //         D = 1;
-
-    //         if(upperRowFlag) {
-    //             A = -1;
-    //             B = -1;
-    //         }
-    //         else {
-    //             A = 1;
-    //             B = 1;
-    //         }
-    //         if(lowerRowFlag) {
-    //             C = -1;
-    //             D = -1;
-    //         }
-    //         else {
-    //             C = 1;
-    //             D = 1;
-    //         }
-
-    //         if(value < 0) {
-    //             value = 0;
-    //             result[row][col] = value;
-    //         }
-    //         else if(value > 256) {
-    //             value = 255;
-    //             result[row][col] = value;
-    //         }
-    //         else {
-    //             result[row][col] = value;
-    //         }
-    //     }
-    // }
+    // 사용이 끝난 value 배열은 메모리 할당 해제
+    delete[] value[0];
+    delete[] value;
 
 	return result;
 }
