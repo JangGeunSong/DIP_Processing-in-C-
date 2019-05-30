@@ -125,7 +125,7 @@ unsigned char** zoomOut(unsigned char** originaImg, int zoomOutScope) {
 }
 
 int main() {
-	int fileSize = 512, zoomNum = 2;
+	int fileSize = 512, zoomNum = 4;
     int chnageSize = fileSize / zoomNum;
 	FILE* hLena = fopen("lena.img", "rb");
 	unsigned char** ppLena = _2dAlloc(fileSize, fileSize);
