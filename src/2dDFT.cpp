@@ -72,7 +72,7 @@ unsigned char** _2dDFT(unsigned char** originaImg) {
 				res = 0;
 				result[u][v] = res;
 			}
-			else if(res > 128) {
+			else if(res > 256) {
 				res = 255;
 				result[u][v] = res;
 			}
