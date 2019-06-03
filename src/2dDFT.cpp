@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define PI 3.14
+#define PI 3.14159265358979
 
 struct ComplexNum {
 	double real;
@@ -22,9 +22,10 @@ unsigned char** _2dAlloc(int width, int height)
 
 unsigned char** _2dDFT(unsigned char** originaImg) {
 	unsigned char** result = _2dAlloc(128, 128);
-	int m = 0, n = 0, totlaPixel = 128 * 128;
+	int m = 0, n = 0;
 	int u = 0, v = 0;
-	double coef = 0, DCvalue = 1; //DCvalue (0,0)의 값.
+	double coef = 0, DCvalue = 1, res = 0, totalPixel = 128 * 128; //DCvalue (0,0)의 값.
+	double real = 0, imag = 0, valueCos = 0, valueSin = 0;
 	double savePixel[128][128] = { 0 };
 	struct ComplexNum values[128][128];
 	// step 1을 시행
@@ -36,20 +37,28 @@ unsigned char** _2dDFT(unsigned char** originaImg) {
 			else {
 				savePixel[m][n] = -1 * originaImg[m][n];
 			}
+			values[m][n].real = 0;
+			values[m][n].imag = 0;
 		}
 	}
 	printf("step 1 is complete!! \n");
 	// step 2를 시행
 	for (u = 0; u < 128; u++) {
 		for (v = 0; v < 128; v++) {
+			real = 0;
+			imag = 0;
 			for (m = 0; m < 128; m++) {
 				for (n = 0; n < 128; n++) {
-                    values[u][v].real = (savePixel[m][n] * (cos(((2 * PI * u * m) / 128) * (PI / 180)) * cos(((2 * PI * v * n) / 128) * (PI / 180)) + sin(((2 * PI * u * m) / 128) * (PI / 180)) * sin(((2 * PI * v * n) / 128) * (PI / 180))));
-                    values[u][v].imag = (savePixel[m][n] * (cos(((2 * PI * u * m) / 128) * (PI / 180)) * -sin(((2 * PI * v * n) / 128) * (PI / 180)) + (sin(((2 * PI * u * m) / 128) * (PI / 180)) * -cos(((2 * PI * v * n) / 128) * (PI / 180)))));
+					valueCos = (cos(2.0 * PI * (((u * m) + (v * n)) / 128.0)));
+					valueSin = (sin(2.0 * PI * (((u * m) + (v * n)) / 128.0)));
+                    real = real + (savePixel[m][n] * valueCos);
+                    imag = imag + (savePixel[m][n] * valueSin);
 				}
 			}
+			values[u][v].real = real / totalPixel; 
+			values[u][v].imag = imag / totalPixel; 
 		}
-		printf("u comp %d \n", u);
+		printf("%d complete!\n", u);
 	}
 	printf("step 2 is complete!! \n");
 
@@ -58,7 +67,18 @@ unsigned char** _2dDFT(unsigned char** originaImg) {
 	for (u = 0; u < 128; u++) {
 		for (v = 0; v < 128; v++) {
 			coef = sqrt(pow(values[u][v].real, 2) + pow(values[u][v].imag, 2));
-			result[u][v] = (unsigned char)255 * (log10(coef + 1) / log10(DCvalue + 1));
+			res = 255.0 * log10(coef + 1) / log10(DCvalue + 1);
+			if(res < 0) {
+				res = 0;
+				result[u][v] = res;
+			}
+			else if(res > 128) {
+				res = 255;
+				result[u][v] = res;
+			}
+			else {
+				result[u][v] = res;
+			}
 		}
 	}
 	printf("step 3 is complete!! \n");
