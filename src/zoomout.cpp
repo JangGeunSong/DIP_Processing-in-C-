@@ -125,7 +125,7 @@ unsigned char** zoomOut(unsigned char** originaImg, int zoomOutScope) {
 }
 
 int main() {
-	int fileSize = 512, zoomNum = 4;
+	int fileSize = 512, zoomNum = 2;
     int chnageSize = fileSize / zoomNum;
 	FILE* hLena = fopen("lena.img", "rb");
 	unsigned char** ppLena = _2dAlloc(fileSize, fileSize);
@@ -135,7 +135,7 @@ int main() {
 	unsigned char** ppOutputImg = zoomOut(ppLena, zoomNum);
 	printf("Zoom out is complete!");
 
-	FILE* hOutput = fopen("output.img", "wb");
+	FILE* hOutput = fopen("zoomout_x2.img", "wb");
 	fwrite(ppOutputImg[0], 1, chnageSize * chnageSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];

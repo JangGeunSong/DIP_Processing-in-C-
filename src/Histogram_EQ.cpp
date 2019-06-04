@@ -90,7 +90,7 @@ int main() {
 	unsigned char** ppOutputImg = histogramEQ(ppLena);
 	printf("Histogram Equalization is complete!");
 
-	FILE* hOutput = fopen("output.img", "wb");
+	FILE* hOutput = fopen("HEQ.img", "wb");
 	fwrite(ppOutputImg[0], 1, fileSize * fileSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];

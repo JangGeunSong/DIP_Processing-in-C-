@@ -105,7 +105,7 @@ int main() {
 	unsigned char** ppOutputImg = zoomOut(ppLena, Filter);
 	printf("LPF is complete!");
 
-	FILE* hOutput = fopen("output.img", "wb");
+	FILE* hOutput = fopen("LPF.img", "wb");
 	fwrite(ppOutputImg[0], 1, 512 * 512, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];

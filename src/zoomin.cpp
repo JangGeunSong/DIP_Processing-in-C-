@@ -108,7 +108,7 @@ int main() {
 	unsigned char** ppOutputImg = zoomIn(ppLena, zoomNum);
 	printf("Zoom in is complete!");
 
-	FILE* hOutput = fopen("output.img", "wb");
+	FILE* hOutput = fopen("zoomin_2.img", "wb");
 	fwrite(ppOutputImg[0], 1, chnageSize * chnageSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];

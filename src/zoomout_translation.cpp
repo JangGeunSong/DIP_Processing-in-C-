@@ -156,7 +156,7 @@ int main() {
 	unsigned char** ppOutputImg = zoomOut_translation(ppLena, zoomNum, 50, 50);
 	printf("Zoomout and translation are complete!");
 
-	FILE* hOutput = fopen("output.img", "wb");
+	FILE* hOutput = fopen("ZT.img", "wb");
 	fwrite(ppOutputImg[0], 1, fileSize * fileSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];

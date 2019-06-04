@@ -208,7 +208,7 @@ int main() {
 	// unsigned char** ppOutputImg = zoomOut(ppLena, zoomNum, 200, 20, 0.5);   
 	printf("Zoomout, translation and rotation are complete!\n");
 
-	FILE* hOutput = fopen("output.img", "wb");
+	FILE* hOutput = fopen("ZTR.img", "wb");
 	fwrite(ppOutputImg[0], 1, fileSize * fileSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];
