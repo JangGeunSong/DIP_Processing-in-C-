@@ -1,6 +1,15 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
 #include <stdio.h>
 #include <math.h>
+
+using namespace std;
+
+struct HuffmanValueBundle {
+    int value;
+    double probDensity;
+    string binary;
+};
 
 unsigned char** _2dAlloc(int width, int height)
 {
@@ -13,13 +22,14 @@ unsigned char** _2dAlloc(int width, int height)
 	return ppA;
 }
 
-unsigned char** _2dDFT(unsigned char** originaImg) {
+unsigned char** _2dHuffman(unsigned char** originaImg) {
 	unsigned char** result = _2dAlloc(512, 512);
 	int m = 0, n = 0, u = 0 , v = 0;
     int x = 0 , y = 0;
     int save = 0;
     int value[512][512] = { 0 };
 	
+    // step 1 execute DPCM
     for(x = 0; x < 512; x++) {
         for(y = 0; y < 512; y++) {
             if(x == 0 && y == 0) {
@@ -31,8 +41,36 @@ unsigned char** _2dDFT(unsigned char** originaImg) {
             }
         }
     }
-    printf("DPCM complete!\n");
+    printf("DPCM encode complete!\n");
 
+    // step 2 execute huffmancoding and calculate Entropy of the image
+
+    printf("Huffman encode complete!\n");
+
+    // step 2-1 extract the file that huffman encoding result
+
+    printf("Huffman encode result extract complete!\n");
+    
+    // step 3 decode the huffmancoding
+
+    printf("Huffman encode complete!\n");
+    
+    // step 4 decode DPCM
+    for(x = 0; x < 512; x++) {
+        for(y = 0; y < 512; y++) {
+            if(x == 0 && y == 0) {
+                save = value[x][y];
+            }
+            else {
+                value[x][y] = value[x][y] + save;
+                save = value[x][y];
+            }
+        }
+    }
+    printf("DPCM decode complete!\n");
+
+
+    // step 5 attach the decode DPCM value at the result array that return final image
     for(x = 0; x < 512; x++) {
         for(y = 0; y < 512; y++) {
             if(value[x][y] < 0) {
@@ -57,10 +95,10 @@ int main() {
 	fread(ppLena[0], 1, fileSize * fileSize, hLena);
 	fclose(hLena);
 
-	unsigned char** ppOutputImg = _2dDFT(ppLena);
-	printf("DPCM is complete!");
+	unsigned char** ppOutputImg = _2dHuffman(ppLena);
+	printf("Huffman coding is complete!");
 
-	FILE* hOutput = fopen("DPCM.img", "wb");
+	FILE* hOutput = fopen("HuffmanResult.img", "wb");
 	fwrite(ppOutputImg[0], 1, fileSize * fileSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];
