@@ -5,11 +5,7 @@
 
 using namespace std;
 
-struct HuffmanValueBundle {
-    int value;
-    double probDensity;
-    string binary;
-};
+
 
 unsigned char** _2dAlloc(int width, int height)
 {
@@ -24,16 +20,20 @@ unsigned char** _2dAlloc(int width, int height)
 
 unsigned char** _2dHuffman(unsigned char** originaImg) {
 	unsigned char** result = _2dAlloc(512, 512);
-	int m = 0, n = 0, u = 0 , v = 0;
-    int x = 0 , y = 0;
+	int index = 0, totalPixel = 512 * 512;
+    int x = 0 , y = 0, level = 0;
     int save = 0;
-    int value[512][512] = { 0 };
-	
+    int min = 0, max = 0;
+    int value[512][512] = { 0 }; // DPCM value
+    int hist[256] = { 0 };
+    double PDF[256] = { 0 };
+
     // step 1 execute DPCM
     for(x = 0; x < 512; x++) {
         for(y = 0; y < 512; y++) {
             if(x == 0 && y == 0) {
                 value[x][y] = originaImg[x][y];
+                save = originaImg[x][y];
             }
             else {
                 value[x][y] = originaImg[x][y] - save;
@@ -42,8 +42,37 @@ unsigned char** _2dHuffman(unsigned char** originaImg) {
         }
     }
     printf("DPCM encode complete!\n");
-
+    min = value[0][0];
+    max = value[0][1];
     // step 2 execute huffmancoding and calculate Entropy of the image
+    for(x = 0; x < 512; x++) {
+        for(y = 1; y < 512; y++) {
+            if(min > value[x][y]) {
+                min = value[x][y];
+            }
+            if(max < value[x][y]) {
+                max = value[x][y];
+            }
+        }
+    }
+    printf("min %d, max %d\n", min, max);
+
+    for(x = 0; x < 512; x++) {
+        for(y = 0; y < 512; y++) {
+            if(x == 0 && y == 0) {
+                level = value[x][y];
+                hist[level]++;
+            }
+            else {
+                level = value[x][y] - min;
+                hist[level]++;
+            }
+        }
+    }
+
+    for(x = 0; x < 256; x++) {
+        PDF[x] = (double)hist[x] / totalPixel;
+    }
 
     printf("Huffman encode complete!\n");
 
@@ -51,7 +80,7 @@ unsigned char** _2dHuffman(unsigned char** originaImg) {
 
     printf("Huffman encode result extract complete!\n");
     
-    // step 3 decode the huffmancoding
+    // step 3 decode the huffmancoding result
 
     printf("Huffman encode complete!\n");
     

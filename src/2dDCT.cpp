@@ -95,7 +95,7 @@ unsigned char** _2dDCT(unsigned char** originaImg) {
 
 int main() {
 	int fileSize = 128;
-	FILE* hLena = fopen("lena.img", "rb");
+	FILE* hLena = fopen("lena_128.img", "rb");
 	unsigned char** ppLena = _2dAlloc(fileSize, fileSize);
 	fread(ppLena[0], 1, fileSize * fileSize, hLena);
 	fclose(hLena);
@@ -103,7 +103,7 @@ int main() {
 	unsigned char** ppOutputImg = _2dDCT(ppLena);
 	printf("2dDCT is complete!");
 
-	FILE* hOutput = fopen("DCT.img", "wb");
+	FILE* hOutput = fopen("IDCT.img", "wb");
 	fwrite(ppOutputImg[0], 1, fileSize * fileSize, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];
