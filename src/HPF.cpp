@@ -22,26 +22,26 @@ int** _2FilterAlloc(int width, int height)
 		Filter[i] = Filter[i - 1] + width;
 	}
     // 수직
-    Filter[0][0] = 1;
-    Filter[0][1] = 0;
-    Filter[0][2] = -1;
-    Filter[1][0] = 2;
-    Filter[1][1] = 0;
-    Filter[1][2] = -2;
-    Filter[2][0] = 1;
-    Filter[2][1] = 0;
-    Filter[2][2] = -1;
+    // Filter[0][0] = 1;
+    // Filter[0][1] = 0;
+    // Filter[0][2] = -1;
+    // Filter[1][0] = 2;
+    // Filter[1][1] = 0;
+    // Filter[1][2] = -2;
+    // Filter[2][0] = 1;
+    // Filter[2][1] = 0;
+    // Filter[2][2] = -1;
     
     // 수평
-    // Filter[0][0] = 1;
-    // Filter[0][1] = 2;
-    // Filter[0][2] = 1;
-    // Filter[1][0] = 0;
-    // Filter[1][1] = 0;
-    // Filter[1][2] = 0;
-    // Filter[2][0] = -1;
-    // Filter[2][1] = -2;
-    // Filter[2][2] = -1;
+    Filter[0][0] = 1;
+    Filter[0][1] = 2;
+    Filter[0][2] = 1;
+    Filter[1][0] = 0;
+    Filter[1][1] = 0;
+    Filter[1][2] = 0;
+    Filter[2][0] = -1;
+    Filter[2][1] = -2;
+    Filter[2][2] = -1;
 
 	return Filter;
 }
@@ -118,7 +118,7 @@ int main() {
 	unsigned char** ppOutputImg = zoomOut(ppLena, Filter);
 	printf("HPF is complete!");
 
-	FILE* hOutput = fopen("HPF.img", "wb");
+	FILE* hOutput = fopen("HPF_s.img", "wb");
 	fwrite(ppOutputImg[0], 1, 512 * 512, hOutput);
 	fclose(hOutput);
 	delete[] ppLena[0];

@@ -5,7 +5,11 @@
 
 using namespace std;
 
-
+struct HuffmanTree {
+    double p;
+    int greyLevel;
+    string binary;
+};
 
 unsigned char** _2dAlloc(int width, int height)
 {
@@ -26,7 +30,8 @@ unsigned char** _2dHuffman(unsigned char** originaImg) {
     int min = 0, max = 0;
     int value[512][512] = { 0 }; // DPCM value
     int hist[256] = { 0 };
-    double PDF[256] = { 0 };
+    HuffmanTree PDF[256] = { 0 }, dummy;
+    double maxP = 0, Entropy = 0, enSave = 0;
 
     // step 1 execute DPCM
     for(x = 0; x < 512; x++) {
@@ -70,9 +75,38 @@ unsigned char** _2dHuffman(unsigned char** originaImg) {
         }
     }
 
+    // Initailize PDF value --> probability
     for(x = 0; x < 256; x++) {
-        PDF[x] = (double)hist[x] / totalPixel;
+        PDF[x].p = -1;
     }
+
+    // step 1- 1 calculate Entropy
+    for(x = 0; x < 256; x++) {
+        PDF[x].greyLevel = x;
+        PDF[x].p = (double)hist[x] / totalPixel;
+    }
+    
+    for(x = 0; x < 256; x++) {
+        if(PDF[x].p != -1) {
+            enSave = -1 * log2(PDF[x].p) * PDF[x].p;
+            Entropy = Entropy + enSave;
+        }
+    }
+
+    printf("Entropy %lf\n", Entropy);
+
+    for(x = 0; x < 256; x++) {
+        maxP = PDF[x].p;
+        for(y = x; y < 256; y++) {
+            if(maxP < PDF[y].p) {
+                maxP = PDF[y].p;
+                dummy = PDF[y];
+                PDF[y] = PDF[x];
+                PDF[x] = dummy;
+            }
+        }
+    }
+
 
     printf("Huffman encode complete!\n");
 
